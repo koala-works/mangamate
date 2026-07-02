@@ -217,7 +217,7 @@
       </div>
     </div>
     <div class="detail" id="detail"></div>
-    <div class="placeholder" id="placeholder"><div class="big">📖</div><b>Start typing a manga title above.</b><br>Results come live from MangaDex + MyAnimeList (with AniList as backup).</div>
+    <div class="placeholder" id="placeholder"><div class="big">📖</div><b>Start typing a manga title above.</b><br>Results come live from MyAnimeList + AniList — plus the MangaDex catalog whenever it's reachable.</div>
   </section>
 
   <section class="panel" id="learn">
@@ -600,7 +600,7 @@ function renderVolumesUI(box,m){
     // Fallback: synthesize Volume 1…N from the known published-volume count
     const n=Math.min(60,Math.round(+m.volumes||0));
     if(n>0){
-      list.appendChild(el("div","note",`${n} published volume${n===1?"":"s"} (from MyAnimeList).${IS_FILE?" Per-volume covers &amp; chapter lists need MangaDex, which blocks pages opened straight from disk — host the app to unlock them.":" MangaDex has no detailed data for this title."}`));
+      list.appendChild(el("div","note",`${n} published volume${n===1?"":"s"} (from MyAnimeList). MangaDex's detailed chapter lists &amp; covers aren't reachable right now, but every volume is listed below with a buy link.`));
       for(let i=1;i<=n;i++){
         const r=el("div","row");
         r.innerHTML=`<div class="vcov" style="display:grid;place-items:center">📖</div>
@@ -610,7 +610,7 @@ function renderVolumesUI(box,m){
       }
       return;
     }
-    list.innerHTML=`<div class="note">${IS_FILE?"⚠️ MangaDex blocks pages opened straight from disk (file://), and no volume count is on record for this title — see the buy links below, or host the app for full volume lists.":"Volume list not available for this title — see the buy links below."}</div>`;
+    list.innerHTML=`<div class="note">Volume list not available for this title — no volume count is on record and MangaDex's volume data isn't reachable. The buy links below still work.</div>`;
   };
 }
 
@@ -1149,8 +1149,6 @@ $("#vq").addEventListener("input",e=>{VQ=e.target.value;updateVids();});
 if(LOC){$("#country").value=LOC.country||"us";setLocStatus(`✓ Saved area: ${esc(LOC.label)} (${(LOC.shops||[]).length} shops).`);}
 renderChips();renderLvlBar();renderTutorials();loadRecs();
 renderVidBars();updateVids();renderResources();
-if(IS_FILE)$("#placeholder").insertAdjacentHTML("beforeend",
-  `<br><span style="font-size:11.5px">Heads-up: opened straight from disk, the MangaDex catalog &amp; detailed volume lists are blocked by MangaDex itself — search still works via MyAnimeList. Host the file (even a free GitHub Pages / Neocities page works) for the full experience.</span>`);
 </script>
 </body>
 </html>
