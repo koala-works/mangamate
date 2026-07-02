@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MangaMate — Find manga, ratings & where to read/watch</title>
+<style>
+  [data-theme="light"]{
+    --bg:#fff7fb;--card:#ffffff;--card2:#fdeef4;--line:#f3d4e1;--ink:#2b2530;--muted:#8f8290;
+    --accent:#ff6fa5;--accent2:#2bb39c;--grad:linear-gradient(120deg,#ff6fa5,#43c9b0);
+    --chip:#fbe6ef;--shadow:0 8px 26px rgba(255,111,165,.18);
+  }
+  [data-theme="dark"]{
+    --bg:#161318;--card:#211d25;--card2:#2a2531;--line:#39323f;--ink:#ededf1;--muted:#a49dab;
+    --accent:#e23e56;--accent2:#e8859a;--grad:linear-gradient(120deg,#e23e56,#8b2233);
+    --chip:#2f2933;--shadow:0 8px 26px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;transition:background .25s,color .25s}
+  a{color:inherit}
+  .wrap{max-width:920px;margin:0 auto;padding:20px 16px 70px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:13px;background:var(--grad);display:grid;place-items:center;font-size:23px;color:#fff;box-shadow:var(--shadow)}
+  .brand h1{font-size:21px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+  .tabs{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:13px;border:1px solid var(--line)}
+  .tab{border:0;background:transparent;color:var(--muted);padding:9px 15px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .tab.active{background:var(--grad);color:#fff}
+  .themebtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer}
+  .panel{display:none;animation:fade .25s ease}.panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .hero{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:14px;box-shadow:var(--shadow)}
+  .hero h2{margin:0 0 4px;font-size:19px}.hero .sub{color:var(--muted);font-size:13.5px;margin:0 0 16px;line-height:1.55}
+  .locbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px}
+  .locbar select,.locbar input{background:var(--card2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px;outline:0}
+  .locbar input{flex:1;min-width:130px}
+  .locbar select:focus,.locbar input:focus{border-color:var(--accent)}
+  .locstatus{font-size:12.5px;color:var(--muted);margin-top:8px;min-height:16px}.locstatus b{color:var(--accent2)}
+  .searchwrap{position:relative;margin-top:14px}
+  .searchbar{display:flex;gap:10px;align-items:center;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;padding:6px 6px 6px 16px}
+  .searchbar:focus-within{border-color:var(--accent)}
+  .searchbar input{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font-size:16px;padding:12px 0;min-width:0}
+  .searchbar .ico{font-size:18px}
+  .spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:none;margin-right:8px}
+  .spin.on{display:block}@keyframes spin{to{transform:rotate(360deg)}}
+  .preds{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden auto;z-index:20;box-shadow:var(--shadow);display:none;max-height:390px;overscroll-behavior:contain}
+  .preds.on{display:block}
+  .pred{display:flex;gap:12px;align-items:center;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line)}
+  .pred:last-child{border-bottom:0}.pred.kbd{background:var(--card2)}
+  .pred.sub{padding-left:44px;box-shadow:inset 4px 0 0 var(--chip)}
+  .pred.hiddenrow{display:none!important}
+  .morepill{margin-left:6px;flex:none;border:1px solid var(--line);background:var(--chip);color:var(--accent);font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit}
+  .morepill:hover{border-color:var(--accent)}
+  .pred img{width:38px;height:54px;object-fit:cover;border-radius:7px;background:var(--card2);flex:none}
+  .pred .pi{flex:1;min-width:0}.pred .pi b{font-size:14.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pred .pi span{font-size:12px;color:var(--muted)}
+  .pred .sc{font-size:12px;font-weight:800;color:#fff;background:var(--accent2);padding:3px 8px;border-radius:999px;white-space:nowrap}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chip{background:var(--chip);border:1px solid var(--line);color:var(--muted);font-size:12.5px;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit}
+  .chip:hover{color:var(--ink);border-color:var(--accent)}
+  .chip.on{background:var(--grad);color:#fff;border-color:transparent}
+
+  .recs{display:none;margin-top:16px}.recs.on{display:block}
+  .recs h4{margin:0 0 9px;font-size:13.5px}
+  .recs h4 span{color:var(--muted);font-weight:500;font-size:12px}
+  .recrow{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+  .reccard{flex:none;width:94px;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:6px;cursor:pointer;text-align:left;font-family:inherit;color:var(--ink)}
+  .reccard img{width:100%;height:114px;object-fit:cover;border-radius:8px;background:var(--bg);display:block}
+  .reccard span{display:block;font-size:11px;margin-top:5px;line-height:1.3;max-height:29px;overflow:hidden}
+  .reccard:hover{border-color:var(--accent)}
+  .recload{font-size:12.5px;color:var(--muted);padding:8px 2px}
+
+  .detail{margin-top:16px;display:none}.detail.on{display:block}
+  .placeholder{text-align:center;color:var(--muted);padding:40px 16px;border:1px dashed var(--line);border-radius:18px;margin-top:16px}
+  .placeholder .big{font-size:42px;margin-bottom:8px}
+  .dcard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+  .dhead{display:flex;gap:16px;padding:18px}
+  .dhead img{width:104px;height:150px;object-fit:cover;border-radius:12px;background:var(--card2);flex:none;box-shadow:var(--shadow)}
+  .dhead h3{margin:0 0 4px;font-size:19px}.dhead .by{color:var(--muted);font-size:13px}
+  .scorebig{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:800;color:#fff;background:var(--accent2);padding:6px 12px;border-radius:999px;margin:10px 0}
+  .dhead .tags{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0}
+  .tg{font-size:11.5px;color:var(--accent);background:var(--chip);border:1px solid var(--line);padding:4px 9px;border-radius:999px}
+  .dhead .syn{color:var(--ink);font-size:13px;line-height:1.55;max-height:120px;overflow:auto}
+  .lab{font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 0 10px;padding:0 18px}
+  .secwrap{padding:0 18px 16px}
+  .row{display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--bg);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+  .row .name{flex:1;min-width:0}.row .name b{font-size:14px}.row .name span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+  .dist{font-size:12px;font-weight:800;color:var(--accent);background:var(--chip);border:1px solid var(--line);padding:5px 10px;border-radius:999px;white-space:nowrap}
+  .go{font-size:12.5px;font-weight:700;text-decoration:none;color:#fff;background:var(--grad);padding:8px 13px;border-radius:9px;white-space:nowrap;border:0;cursor:pointer;font-family:inherit}
+  .go.alt{background:var(--card2);border:1px solid var(--line);color:var(--ink)}
+  .note{font-size:12px;color:var(--muted);background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+
+  /* volumes */
+  .volbtn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px}
+  .volbtn:hover{border-color:var(--accent)}
+  .vcov{width:34px;height:48px;object-fit:cover;border-radius:6px;flex:none;background:var(--card2);font-size:17px}
+
+  /* learn hub */
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:14px;box-shadow:var(--shadow)}
+  .lead h2{margin:0 0 6px;font-size:19px}.lead h3{margin:0 0 6px;font-size:16.5px}
+  .lead p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .vsearch{margin-top:14px}
+  .ytall{flex:none}
+  .vstatus{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:16px}
+  .vstatus a{color:var(--accent);font-weight:700}
+  .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:12px}
+  .vcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .vcard:hover{border-color:var(--accent)}
+  .vthumb{position:relative;aspect-ratio:16/9;background:#0a0a0d;cursor:pointer;overflow:hidden}
+  .vthumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .vthumb.noimg img{display:none}
+  .vthumb iframe{width:100%;height:100%;border:0;display:block}
+  .vthumb.playing{cursor:default}
+  .vplay{position:absolute;inset:0;margin:auto;width:52px;height:52px;border-radius:50%;border:0;background:var(--grad);color:#fff;font-size:19px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.4);display:grid;place-items:center;padding-left:4px;transition:.15s}
+  .vthumb:hover .vplay{transform:scale(1.1)}
+  .vmeta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px;flex:1}
+  .vmeta b{font-size:13.5px;line-height:1.35}
+  .vch{font-size:12px;color:var(--muted)}
+  .vtags{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto}
+  .vtag{font-size:10.5px;font-weight:700;color:var(--accent);background:var(--chip);border:1px solid var(--line);padding:3px 8px;border-radius:999px;text-transform:capitalize}
+  .vtag.lvl{color:#fff;background:var(--accent2);border-color:transparent}
+  .charcard{grid-column:1/-1;text-align:center;border:1.5px dashed var(--line);border-radius:16px;padding:26px 18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .charcard .big{font-size:38px}
+  .charcard b{font-size:15.5px}
+  .charcard p{margin:0;color:var(--muted);font-size:13px;line-height:1.5;max-width:420px}
+  .charcard p.small{font-size:11.5px}
+  .charguide{grid-column:1/-1;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .cgtop{display:flex;gap:16px;align-items:flex-start}
+  .cgtop img{width:120px;height:170px;object-fit:cover;border-radius:12px;background:var(--card2);flex:none;box-shadow:var(--shadow)}
+  .cginfo{flex:1;min-width:0}
+  .cginfo b{font-size:16.5px}
+  .cginfo p{color:var(--muted);font-size:12.5px;line-height:1.55;margin:6px 0 10px}
+  .cgbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .cgsteps{margin-top:14px}
+  .cgsteps>b{font-size:13.5px}
+  .cgsteps ol.steps{list-style:none;counter-reset:s;margin:10px 0 0;padding:0}
+  .cgsteps ol.steps li{counter-increment:s;position:relative;padding:12px 12px 12px 48px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:11px;font-size:13px;line-height:1.55}
+  .cgsteps ol.steps li::before{content:counter(s);position:absolute;left:9px;top:11px;width:27px;height:27px;border-radius:8px;background:var(--grad);color:#fff;font-weight:800;font-size:12.5px;display:grid;place-items:center}
+  .cgalts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .cgalts span{font-size:12px;color:var(--muted);font-weight:700}
+  @media(max-width:520px){.cgtop{flex-direction:column;align-items:center;text-align:center}.cgbtns{justify-content:center}}
+
+  /* step-by-step guides */
+  .tut{background:var(--card);border:1px solid var(--line);border-radius:17px;margin-top:13px;overflow:hidden;box-shadow:var(--shadow)}
+  .tut-head{display:flex;align-items:center;gap:13px;padding:15px 17px;cursor:pointer}
+  .tut-ico{width:44px;height:44px;border-radius:11px;background:var(--chip);border:1px solid var(--line);display:grid;place-items:center;font-size:23px;flex:none}
+  .tut-head .t{flex:1}.tut-head h3{margin:0;font-size:15.5px}.tut-head .meta{color:var(--muted);font-size:12px;margin-top:3px}
+  .level{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--chip);color:var(--accent)}
+  .caret{color:var(--muted);font-size:16px;transition:.2s}.tut.open .caret{transform:rotate(180deg)}
+  .tut-body{display:none;padding:4px 17px 18px}.tut.open .tut-body{display:block}
+  .tip{margin-top:10px;font-size:12.5px;color:var(--muted);background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .lintro{color:var(--muted);font-size:12.5px;margin:2px 0 8px;line-height:1.5}
+  .lstage{margin-top:2px}
+  .dsvg{width:100%;max-width:250px;height:auto;display:block;margin:4px auto;background:var(--bg);border:1px solid var(--line);border-radius:14px}
+  .dsvg .ink{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .dsvg .bold{stroke-width:4.5}
+  .dsvg .guide{fill:none;stroke:var(--muted);stroke-width:1.3;stroke-dasharray:5 4}
+  .dsvg .fill{fill:var(--ink);stroke:none}
+  .dsvg .shine{fill:#fff;stroke:var(--ink);stroke-width:1.4}
+  .dsvg .shade{fill:var(--ink);opacity:.22;stroke:none}
+  .dsvg .soft{fill:var(--accent);opacity:.28;stroke:none}
+  .dsvg text{fill:var(--muted)}
+  .dsvg g.hl path,.dsvg g.hl circle,.dsvg g.hl line,.dsvg g.hl ellipse{stroke:var(--accent)}
+  .dsvg g.hl .fill{fill:var(--accent)}
+  .dsvg g.hl{animation:hlpulse 1s ease-in-out infinite alternate}
+  @keyframes hlpulse{from{opacity:1}to{opacity:.55}}
+  .stepbar{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px}
+  .sbtn{border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:9px;padding:8px 15px;font-size:13px;font-weight:700;cursor:pointer}
+  .sbtn:disabled{opacity:.4;cursor:default}
+  .scount{font-size:12px;color:var(--muted);min-width:88px;text-align:center;font-weight:700}
+  .sdots{display:flex;gap:6px;justify-content:center;margin-top:9px;flex-wrap:wrap}
+  .sdot{width:9px;height:9px;border-radius:50%;background:var(--line);border:0;cursor:pointer;padding:0;transition:.15s}
+  .sdot.on{background:var(--accent);transform:scale(1.25)}
+  .scap{margin-top:10px;font-size:13.5px;line-height:1.5;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:11px 13px;color:var(--ink)}
+  .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:30px;line-height:1.7}
+  @media(max-width:600px){.dhead{flex-direction:column}.dhead img{width:96px}.vsearch{flex-wrap:wrap}.vsearch .go{width:100%;text-align:center}}
+</style>
+</head>
+<body data-theme="light">
+<div class="wrap">
+  <header>
+    <div class="brand"><div class="logo">✦</div>
+      <div><h1>MangaMate</h1><p>Find manga · ratings · where to read &amp; watch</p></div></div>
+    <div class="tabs">
+      <button class="tab active" data-tab="find">🔍 Find Manga</button>
+      <button class="tab" data-tab="learn">🎨 Learn to Draw</button>
+    </div>
+    <button class="themebtn" id="themebtn">🌙 Dark</button>
+  </header>
+
+  <section class="panel active" id="find">
+    <div class="hero">
+      <h2>Search any manga 📚</h2>
+      <p class="sub">Type a title to see its rating, what it's about, its full volume list, where to buy the original, where to watch the anime, and bookshops near you. Set your area once to power the shop finder.</p>
+      <div class="locbar">
+        <select id="country">
+          <option value="us">🇺🇸 US</option><option value="gb">🇬🇧 UK</option><option value="ca">🇨🇦 Canada</option>
+          <option value="au">🇦🇺 Australia</option><option value="sg">🇸🇬 Singapore</option><option value="de">🇩🇪 Germany</option><option value="fr">🇫🇷 France</option>
+        </select>
+        <input id="zip" type="text" placeholder="ZIP / postcode (e.g. 10001)" autocomplete="off">
+        <button class="go" id="findShops" style="border:0">📍 Find shops</button>
+      </div>
+      <div class="locstatus" id="locstatus">Tip: set your area so bookshops appear under any title.</div>
+      <div class="searchwrap">
+        <div class="searchbar"><span class="ico">🔎</span>
+          <input id="q" type="text" placeholder="Search a manga… (try “Chainsaw Man”)" autocomplete="off">
+          <div class="spin" id="spin"></div></div>
+        <div class="preds" id="preds"></div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="recs" id="recs">
+        <h4 id="rechead">✨ Recommended for you</h4>
+        <div class="recrow" id="recrow"></div>
+      </div>
+    </div>
+    <div class="detail" id="detail"></div>
+    <div class="placeholder" id="placeholder"><div class="big">📖</div><b>Start typing a manga title above.</b><br>Results come live from MangaDex + MyAnimeList (with AniList as backup).</div>
+  </section>
+
+  <section class="panel" id="learn">
+    <div class="lead">
+      <h2>Learn to draw — your anime art hub 🖊️</h2>
+      <p>Watch real artists teach every skill in the video library below, then practice with the interactive step-by-step guides. Pick a topic, pick your level, and draw along — every video plays right here.</p>
+    </div>
+
+    <div class="lead">
+      <h3>▶️ Video tutorials</h3>
+      <p>A hand-picked library of beginner-friendly manga &amp; anime drawing videos — search it, filter it, and press play. You can also type <b>any character you want to draw</b> (like “Nezuko” or “Luffy”) and MangaMate will line up YouTube tutorials for them.</p>
+      <div class="searchbar vsearch"><span class="ico">🔎</span>
+        <input id="vq" type="text" placeholder="Search a skill or any character… (try “Nezuko”)" autocomplete="off">
+        <a id="ytall" class="go ytall" href="https://www.youtube.com/results?search_query=how+to+draw+anime+for+beginners" target="_blank" rel="noopener">Search all of YouTube ↗</a>
+      </div>
+      <div class="chips" id="vtopics"></div>
+      <div class="chips" id="vlvls"></div>
+      <div class="vstatus" id="vidstatus"></div>
+      <div class="vgrid" id="vidgrid"></div>
+    </div>
+
+    <div class="lead">
+      <h3>✏️ Interactive step-by-step guides</h3>
+      <p>Watch each drawing build one line at a time — simple shapes first, light guide lines, then the features that sell the anime look. Use <b>Next ›</b> or tap the dots to jump around.</p>
+      <div class="chips" id="lvlbar"></div>
+    </div>
+    <div id="tutorials"></div>
+
+    <div class="lead">
+      <h3>🔗 More great guides</h3>
+      <p>Reputable written tutorials for when you want diagrams you can study at your own pace.</p>
+      <div class="secwrap" id="resSec" style="padding:14px 0 0"></div>
+    </div>
+
+    <div class="foot">MangaMate · manga data from MangaDex + MyAnimeList + AniList (auto-fallback) &amp; OpenStreetMap · videos play via YouTube.<br>Open this file in a real browser (or host it) — chat/file preview panes block internet access.</div>
+  </section>
+</div>
+
+<script>
+/* ======== CONFIG ========
+   Optional: paste a YouTube Data API v3 key below to turn the video section
+   into a true live YouTube search. Leave it empty ("") and the app still
+   works fully, using the built-in curated library — no keys needed anywhere. */
+const CONFIG={ YOUTUBE_API_KEY:"" };
+/* Opened straight from disk? (file:// pages send "Origin: null", which the
+   MangaDex API rejects — MyAnimeList & AniList still work fine.) */
+const IS_FILE=location.protocol==="file:";
+
+const $=s=>document.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const enc=encodeURIComponent;
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* theme */
+function setTheme(t){document.body.setAttribute("data-theme",t);$("#themebtn").textContent=t==="light"?"🌙 Dark":"☀️ Light";try{localStorage.setItem("mm_theme",t);}catch(e){}}
+$("#themebtn").onclick=()=>setTheme(document.body.getAttribute("data-theme")==="light"?"dark":"light");
+try{const t=localStorage.getItem("mm_theme");if(t)setTheme(t);}catch(e){}
+
+/* location */
+let LOC=null;
+try{const s=localStorage.getItem("mm_loc");if(s)LOC=JSON.parse(s);}catch(e){}
+function saveLoc(){try{localStorage.setItem("mm_loc",JSON.stringify(LOC));}catch(e){}}
+function haversine(la1,lo1,la2,lo2){const R=6371,d=x=>x*Math.PI/180;const a=Math.sin(d(la2-la1)/2)**2+Math.cos(d(la1))*Math.cos(d(la2))*Math.sin(d(lo2-lo1)/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
+function fmtDist(km,c){if(c==="us"||c==="gb"){const mi=km*0.621371;return (mi<10?mi.toFixed(1):Math.round(mi))+" mi";}return (km<10?km.toFixed(1):Math.round(km))+" km";}
+function setLocStatus(h){$("#locstatus").innerHTML=h;}
+
+async function findShops(){
+  const zip=$("#zip").value.trim(),country=$("#country").value;
+  if(!zip){setLocStatus("Type a ZIP / postcode first.");return;}
+  setLocStatus("Finding your area…");
+  try{
+    let g=await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${enc(zip)}&countrycodes=${country}&format=json&limit=1`).then(r=>r.json());
+    if(!g.length) g=await fetch(`https://nominatim.openstreetmap.org/search?q=${enc(zip)}&countrycodes=${country}&format=json&limit=1`).then(r=>r.json()); // fallback: free-text (handles partial/odd postcodes)
+    if(!g.length){setLocStatus("Couldn't find that postcode — check the country and try again.");return;}
+    const lat=+g[0].lat,lon=+g[0].lon,label=g[0].display_name.split(",").slice(0,3).join(",");
+    setLocStatus(`Found ${esc(label)} — searching for bookshops…`);
+    let shops=await shopsOSM(lat,lon);
+    shops.forEach(s=>s.km=haversine(lat,lon,s.lat,s.lon));
+    shops.sort((a,b)=>a.km-b.km); shops=shops.slice(0,12);
+    LOC={lat,lon,label,country,shops}; saveLoc();
+    setLocStatus(shops.length?`✓ <b>${shops.length} bookshops</b> near ${esc(label)}. They show under any title.`:`Found your area, but no bookshops are tagged nearby. You can still buy online.`);
+    if(CURRENT) renderDetail(CURRENT);
+  }catch(e){ setLocStatus("⚠️ Couldn't reach the shop search — please try again in a moment."); }
+}
+async function shopsOSM(lat,lon){
+  const q=r=>`[out:json][timeout:25];(node["shop"="books"](around:${r},${lat},${lon});way["shop"="books"](around:${r},${lat},${lon});node["shop"="comics"](around:${r},${lat},${lon});way["shop"="comics"](around:${r},${lat},${lon}););out center 40;`;
+  const eps=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+  async function run(rad){for(const ep of eps){try{const r=await fetch(ep,{method:"POST",body:"data="+enc(q(rad))});if(!r.ok)continue;const j=await r.json();if(j.elements)return j.elements;}catch(e){}}return [];}
+  let els=await run(8000); if(!els.length) els=await run(25000);
+  return els.map(e=>{const t=e.tags||{},la=e.lat??e.center?.lat,lo=e.lon??e.center?.lon;if(la==null||lo==null)return null;
+    const addr=[t["addr:housenumber"],t["addr:street"]].filter(Boolean).join(" ");
+    return {name:t.name||"Bookshop",lat:la,lon:lo,phone:t.phone||t["contact:phone"]||"",addr};}).filter(Boolean);
+}
+
+/* ============ Manga search: MangaDex (primary catalog) + MyAnimeList (ratings) + AniList (fallback) ============ */
+let CURRENT=null,predData=[],ctrl=null;
+const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
+// --- MyAnimeList (Jikan) shape ---
+function mapManga(m){
+  return {id:m.mal_id,mdId:null,title:m.title_english||m.title,author:(m.authors||[]).map(a=>a.name.split(",").reverse().join(" ").trim()).slice(0,2).join(", "),
+    year:m.published?.prop?.from?.year||"",type:m.type||"Manga",status:m.status||"",volumes:m.volumes,
+    genres:[...(m.genres||[]),...(m.demographics||[])].slice(0,5).map(g=>g.name),
+    img:m.images?.jpg?.large_image_url||m.images?.jpg?.image_url||"",syn:m.synopsis||"",
+    score:m.score,scoredBy:m.scored_by,rank:m.rank,url:m.url||"",malUrl:m.url||"",
+    reviewsUrl:m.url?m.url.replace(/\/$/,"")+"/reviews":""};
+}
+// --- AniList shape (final fallback) ---
+function mapAniList(m){
+  const st={RELEASING:"Publishing",FINISHED:"Finished",HIATUS:"On hiatus",CANCELLED:"Cancelled",NOT_YET_RELEASED:"Upcoming"}[m.status]||"";
+  const syn=(m.description||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim();
+  const title=m.title.english||m.title.romaji||"Untitled";
+  return {id:null,mdId:null,title,author:((m.staff&&m.staff.nodes)||[]).map(n=>n.name.full).slice(0,2).join(", "),
+    year:(m.startDate&&m.startDate.year)||"",type:"Manga",status:st,volumes:m.volumes,
+    genres:(m.genres||[]).slice(0,5),img:(m.coverImage&&m.coverImage.large)||"",syn,
+    score:m.averageScore?(m.averageScore/10).toFixed(1):null,scoredBy:null,rank:null,
+    url:m.siteUrl||"",malUrl:"",reviewsUrl:m.siteUrl||""};
+}
+// --- MangaDex shape (primary: biggest catalog + covers + volume data, no key, CORS-friendly) ---
+function mapMangaDex(m){
+  const a=m.attributes||{};
+  const tt=a.title||{};
+  const title=tt.en||tt["ja-ro"]||Object.values(tt)[0]||"Untitled";
+  const rels=m.relationships||[];
+  const cov=rels.find(r=>r.type==="cover_art");
+  const img=(cov&&cov.attributes&&cov.attributes.fileName)?`https://uploads.mangadex.org/covers/${m.id}/${cov.attributes.fileName}.256.jpg`:"";
+  const authors=[...new Set(rels.filter(r=>(r.type==="author"||r.type==="artist")&&r.attributes&&r.attributes.name).map(r=>r.attributes.name))];
+  const genres=(a.tags||[]).filter(tg=>tg.attributes&&(tg.attributes.group==="genre"||tg.attributes.group==="theme")).map(tg=>tg.attributes.name&&tg.attributes.name.en).filter(Boolean).slice(0,5);
+  const desc=(a.description&&(a.description.en||Object.values(a.description)[0]))||"";
+  const st={ongoing:"Publishing",completed:"Finished",hiatus:"On hiatus",cancelled:"Cancelled"}[a.status]||"";
+  const lastVol=parseFloat(a.lastVolume);
+  return {id:null,mdId:m.id,title,author:authors.slice(0,2).join(", "),
+    year:a.year||"",type:"Manga",status:st,volumes:(!isNaN(lastVol)&&lastVol>0)?lastVol:null,
+    genres,img,syn:desc.replace(/\s+/g," ").trim(),
+    score:null,scoredBy:null,rank:null,url:`https://mangadex.org/title/${m.id}`,malUrl:"",reviewsUrl:""};
+}
+async function jikanFetch(term,signal){
+  try{
+    const r=await fetch(`https://api.jikan.moe/v4/manga?q=${enc(term)}&limit=15&sfw=true&order_by=popularity&sort=asc`,{signal});
+    if(!r.ok) return []; const j=await r.json(); return (j.data||[]).map(mapManga);
+  }catch(e){ if(e.name==="AbortError") throw e; return []; }
+}
+async function anilistFetch(term,signal){
+  try{
+    const q=`query($s:String){Page(perPage:8){media(search:$s,type:MANGA,sort:POPULARITY_DESC){title{english romaji} description(asHtml:false) genres averageScore volumes status startDate{year} siteUrl coverImage{large} staff(perPage:2){nodes{name{full}}}}}}`;
+    const r=await fetch("https://graphql.anilist.co",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify({query:q,variables:{s:term}}),signal});
+    if(!r.ok) return []; const j=await r.json(); return (((j.data||{}).Page||{}).media||[]).map(mapAniList);
+  }catch(e){ if(e.name==="AbortError") throw e; return []; }
+}
+async function mangadexFetch(term,signal){
+  try{
+    const u=`https://api.mangadex.org/manga?title=${enc(term)}&limit=15&order[relevance]=desc&contentRating[]=safe&contentRating[]=suggestive&includes[]=cover_art&includes[]=author`;
+    const r=await fetch(u,{signal});
+    if(!r.ok) return []; const j=await r.json(); return (j.data||[]).map(mapMangaDex);
+  }catch(e){ if(e.name==="AbortError") throw e; return []; }
+}
+/* Merge + de-duplicate by normalized title.
+   MangaDex wins for breadth & covers; MyAnimeList enriches matching titles
+   with the rating badge, review link and polished synopsis; AniList is only
+   used if both are down. If one source fails we degrade to the others. */
+function normTitle(t){return (t||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+function mergeResults(md,mal){
+  const out=[],idx=new Map();
+  md.forEach(m=>{idx.set(normTitle(m.title),out.length);out.push(m);});
+  mal.forEach(m=>{
+    const k=normTitle(m.title);
+    if(idx.has(k)){
+      const t=out[idx.get(k)];
+      t.id=t.id||m.id;
+      t.score=m.score;t.scoredBy=m.scoredBy;t.rank=m.rank;
+      t.malUrl=m.malUrl;t.reviewsUrl=m.reviewsUrl;
+      if(!t.syn||t.syn.length<40)t.syn=m.syn;
+      if(!t.author)t.author=m.author;
+      if(!t.year)t.year=m.year;
+      if(!t.img)t.img=m.img;
+      if(!t.genres.length)t.genres=m.genres;
+      if(!t.volumes)t.volumes=m.volumes;
+      if(!t.status)t.status=m.status;
+    }else{idx.set(k,out.length);out.push(m);}
+  });
+  return out;
+}
+/* Re-rank merged results by how well the title actually matches what was
+   typed — the APIs' own "relevance" can surface titles that share only one
+   word (e.g. "…Is a Man" for "chainsaw man"). Exact match > starts-with >
+   contains > all words present > some words. Community rating breaks ties. */
+function relScore(m,q){
+  const t=normTitle(m.title),qq=normTitle(q);
+  if(!qq)return 0;
+  let s=0;
+  if(t===qq)s=1000;
+  else if(t.startsWith(qq))s=800;
+  else if(t.includes(qq))s=600;
+  else{
+    const qw=qq.split(" ").filter(Boolean),tw=new Set(t.split(" "));
+    const hit=qw.filter(w=>tw.has(w)).length;
+    s=(hit&&hit===qw.length)?400:Math.round(150*hit/Math.max(1,qw.length));
+  }
+  if(m.score)s+=Math.min(99,Math.round(m.score*10)); // rated titles float up within a tier
+  return s;
+}
+async function combinedSearch(term,sig){
+  const [mdR,malR]=await Promise.allSettled([mangadexFetch(term,sig),jikanFetch(term,sig)]);
+  if(sig&&sig.aborted){const e=new Error("aborted");e.name="AbortError";throw e;}
+  const md=mdR.status==="fulfilled"?mdR.value:[];
+  const mal=malR.status==="fulfilled"?malR.value:[];
+  let items=mergeResults(md,mal);
+  if(!items.length) items=await anilistFetch(term,sig); // final fallback
+  items.sort((a,b)=>relScore(b,term)-relScore(a,term)); // stable sort: ties keep source order
+  return items;
+}
+async function predict(term){
+  if(ctrl)ctrl.abort(); ctrl=new AbortController(); const sig=ctrl.signal; $("#spin").classList.add("on");
+  try{
+    const items=await combinedSearch(term,sig);
+    predData=items; renderPreds();
+    if(!items.length){
+      $("#preds").innerHTML=`<div class="pred" style="cursor:default"><div class="pi"><b>⚠️ All manga databases are unreachable</b><span>Check your internet, or try again in a few seconds.</span></div></div>`;
+      $("#preds").classList.add("on");
+    }
+  }catch(e){ if(e.name!=="AbortError"){ /* aborted searches are ignored */ } }
+  finally{ $("#spin").classList.remove("on"); }
+}
+const predictDeb=debounce(predict,380);
+/* Group results from the same series under a collapsible panel.
+   Base key = title up to the first ":" or " - " (e.g. every "One Piece: …"
+   spin-off collapses under "One Piece"). */
+function baseKey(t){
+  let s=(t||"").toLowerCase().split(":")[0].split(" - ")[0];
+  s=s.replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+  return s.length>=3?s:(t||"").toLowerCase();
+}
+function syncHover(box,row){[...box.querySelectorAll(".pred")].forEach(r=>r.classList.remove("kbd"));if(row)row.classList.add("kbd");}
+function renderPreds(){
+  const box=$("#preds");box.innerHTML="";
+  if(!predData.length){box.classList.remove("on");return;}
+  const groups=new Map();
+  predData.forEach((m,i)=>{const k=baseKey(m.title);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(i);});
+  const mkRow=(m,i,sub)=>{
+    const row=el("div","pred"+(sub?" sub hiddenrow":""));row.dataset.i=i;
+    row.innerHTML=`<img loading="lazy" src="${esc(m.img)}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="pi"><b>${esc(m.title)}</b><span>${esc(m.author||"Unknown")}${m.year?" · "+m.year:""}</span></div>
+      ${m.score?`<span class="sc">★ ${esc(m.score)}</span>`:""}`;
+    row.onclick=()=>choose(i);
+    row.onmouseenter=()=>syncHover(box,row);
+    return row;
+  };
+  for(const [,idxs] of groups){
+    const row=mkRow(predData[idxs[0]],idxs[0],false);
+    if(idxs.length>1){
+      const pill=el("button","morepill",`▸ ${idxs.length-1} more in series`);
+      pill.setAttribute("aria-expanded","false");
+      pill.onclick=(ev)=>{ev.stopPropagation();
+        const open=pill.textContent.startsWith("▸");
+        pill.textContent=open?"▾ hide series":`▸ ${idxs.length-1} more in series`;
+        pill.setAttribute("aria-expanded",open?"true":"false");
+        idxs.slice(1).forEach(i2=>{const r=box.querySelector(`.pred[data-i="${i2}"]`);if(r)r.classList.toggle("hiddenrow",!open);});
+      };
+      row.appendChild(pill);
+    }
+    box.appendChild(row);
+    idxs.slice(1).forEach(i2=>box.appendChild(mkRow(predData[i2],i2,true)));
+  }
+  box.classList.add("on");
+}
+function choose(i){const m=predData[i];if(!m)return;CURRENT=m;$("#q").value=m.title;$("#preds").classList.remove("on");renderDetail(m);addHist(m);}
+
+function readLinks(t){const k=enc(t+" manga");return [
+  ["Crunchyroll Store",`https://store.crunchyroll.com/search?q=${enc(t)}`],
+  ["Kinokuniya",`https://united-states.kinokuniya.com/products?is_searching=true&keywords=${enc(t)}`],
+  ["Barnes & Noble",`https://www.barnesandnoble.com/s/${k}`],
+  ["Amazon",`https://www.amazon.com/s?k=${k}`]];}
+
+function renderDetail(m){
+  $("#placeholder").style.display="none";
+  const d=$("#detail");d.classList.add("on");
+  const reviews=m.reviewsUrl||(m.malUrl?m.malUrl.replace(/\/$/,"")+"/reviews":`https://www.google.com/search?q=${enc(m.title+" manga reviews")}`);
+  d.innerHTML=`<div class="dcard">
+    <div class="dhead">
+      <img src="${esc(m.img)}" alt="" onerror="this.style.visibility='hidden'">
+      <div>
+        <h3>${esc(m.title)}</h3>
+        <div class="by">${esc([m.author,m.year,m.type,m.status].filter(Boolean).join(" · "))}${m.volumes?" · "+m.volumes+" vols":""}</div>
+        ${m.score?`<div class="scorebig">★ ${esc(m.score)} / 10${m.scoredBy?` &nbsp;·&nbsp; ${Number(m.scoredBy).toLocaleString()} ratings`:""}${m.rank?` &nbsp;·&nbsp; #${m.rank}`:""}</div>`:""}
+        <div class="tags">${m.genres.map(g=>`<span class="tg">${esc(g)}</span>`).join("")}</div>
+        <div class="syn">${esc(m.syn||"No description available.")}</div>
+      </div>
+    </div>
+    <div class="lab">⭐ Ratings &amp; reviews</div>
+    <div class="secwrap"><div class="row"><div class="name"><b>${m.score?("Community score "+esc(m.score)+"/10"):"See reader reviews"}</b><span>${m.scoredBy?Number(m.scoredBy).toLocaleString()+" readers rated it":"Read what fans think"}</span></div>
+      <a class="go" href="${esc(reviews)}" target="_blank" rel="noopener">Read reviews →</a></div></div>
+    <div class="lab">📚 Volumes</div>
+    <div class="secwrap" id="volSec"></div>
+    <div class="lab">🌐 Buy the original online</div>
+    <div class="secwrap" id="onlineSec"></div>
+    <div class="lab">▶️ Watch the anime</div>
+    <div class="secwrap"><div class="row"><div class="name"><b>Find the anime adaptation</b><span>If it has one, see where it's streaming</span></div>
+      <a class="go" href="https://www.google.com/search?q=${enc(m.title+" anime where to watch")}" target="_blank" rel="noopener">Where to watch →</a></div></div>
+    <div class="lab">📍 Bookshops near you</div>
+    <div class="secwrap" id="shopSec"></div>
+  </div>`;
+  const os=$("#onlineSec");
+  readLinks(m.title).forEach(([name,url])=>{const r=el("div","row");
+    r.innerHTML=`<div class="name"><b>${esc(name)}</b><span>Search this retailer</span></div><a class="go alt" href="${esc(url)}" target="_blank" rel="noopener">Search →</a>`;os.appendChild(r);});
+  renderVolumesUI($("#volSec"),m);
+  renderShops($("#shopSec"),m);
+}
+
+/* ---- Volumes (MangaDex aggregate) ---- */
+async function resolveMdId(m){
+  if(m.mdId)return m.mdId;
+  const items=await mangadexFetch(m.title);
+  const k=normTitle(m.title);
+  const hit=items.find(x=>normTitle(x.title)===k)||items.find(x=>baseKey(x.title)===baseKey(m.title));
+  if(hit){m.mdId=hit.mdId;return hit.mdId;}
+  return null;
+}
+async function fetchVolumes(mdId){
+  async function agg(lang){
+    const r=await fetch(`https://api.mangadex.org/manga/${mdId}/aggregate${lang?`?translatedLanguage[]=${lang}`:""}`);
+    if(!r.ok)throw new Error("aggregate failed");
+    const j=await r.json();return (j&&typeof j.volumes==="object"&&j.volumes)?j.volumes:{};
+  }
+  let vols=await agg("en");
+  if(!Object.keys(vols).length) vols=await agg(""); // no English chapters? show any language
+  return Object.values(vols)
+    .map(v=>({vol:v.volume,chapters:v.chapters?Object.keys(v.chapters).length:(v.count||0)}))
+    .sort((a,b)=>{const na=parseFloat(a.vol),nb=parseFloat(b.vol);const xa=isNaN(na),xb=isNaN(nb);
+      return xa&&xb?0:xa?1:xb?-1:na-nb;});
+}
+async function fetchVolCovers(mdId){
+  try{
+    const r=await fetch(`https://api.mangadex.org/cover?manga[]=${mdId}&limit=100&order[volume]=asc`);
+    if(!r.ok)return{};
+    const j=await r.json();const map={};
+    (j.data||[]).forEach(c=>{const a=c.attributes||{};
+      if(a.volume!=null&&a.fileName&&map[a.volume]==null)map[a.volume]=`https://uploads.mangadex.org/covers/${mdId}/${a.fileName}.256.jpg`;});
+    return map;
+  }catch(e){return{};}
+}
+function renderVolumesUI(box,m){
+  box.innerHTML="";
+  const btn=el("button","volbtn","📖 Show volume list <span style='margin-left:auto'>▾</span>");
+  const list=el("div","vollist");list.style.display="none";
+  box.append(btn,list);
+  let loaded=false,open=false;
+  btn.onclick=async()=>{
+    open=!open;
+    btn.innerHTML=open?"📖 Hide volume list <span style='margin-left:auto'>▴</span>":"📖 Show volume list <span style='margin-left:auto'>▾</span>";
+    list.style.display=open?"":"none";
+    if(loaded||!open)return;
+    loaded=true;
+    list.innerHTML=`<div class="note">Loading volumes…</div>`;
+    /* Rich path: MangaDex aggregate (per-volume chapters + covers).
+       NOTE: MangaDex's API refuses requests from pages opened straight from
+       disk (file:// = "Origin: null"), so when that fails we fall back to a
+       simple Volume 1…N list built from the MyAnimeList volume count. */
+    let mdId=null,vols=null,covers={};
+    try{ mdId=await resolveMdId(m); }catch(e){ mdId=null; }
+    if(mdId){
+      try{ [vols,covers]=await Promise.all([fetchVolumes(mdId),fetchVolCovers(mdId)]); }
+      catch(e){ vols=null; }
+    }
+    list.innerHTML="";
+    if(vols&&vols.length){
+      const numbered=vols.filter(v=>v.vol&&v.vol!=="none");
+      if(numbered.length)list.appendChild(el("div","note",`${numbered.length} volume${numbered.length===1?"":"s"} catalogued on MangaDex — chapter counts from the English release where available.`));
+      vols.forEach(v=>{
+        const noNum=!v.vol||v.vol==="none";
+        const label=noNum?"Extras &amp; unnumbered chapters":`Volume ${esc(v.vol)}`;
+        const img=covers[v.vol];
+        const r=el("div","row");
+        r.innerHTML=`${img?`<img class="vcov" loading="lazy" src="${esc(img)}" alt="" onerror="this.style.visibility='hidden'">`:`<div class="vcov" style="display:grid;place-items:center">📖</div>`}
+          <div class="name"><b>${label}</b><span>${v.chapters} chapter${v.chapters===1?"":"s"}</span></div>
+          <a class="go alt" href="https://mangadex.org/title/${esc(mdId)}" target="_blank" rel="noopener">Read ↗</a>
+          ${noNum?"":`<a class="go" href="https://www.amazon.com/s?k=${enc(m.title+" Vol. "+v.vol+" manga")}" target="_blank" rel="noopener">Buy ↗</a>`}`;
+        list.appendChild(r);
+      });
+      return;
+    }
+    // Fallback: synthesize Volume 1…N from the known published-volume count
+    const n=Math.min(60,Math.round(+m.volumes||0));
+    if(n>0){
+      list.appendChild(el("div","note",`${n} published volume${n===1?"":"s"} (from MyAnimeList).${IS_FILE?" Per-volume covers &amp; chapter lists need MangaDex, which blocks pages opened straight from disk — host the app to unlock them.":" MangaDex has no detailed data for this title."}`));
+      for(let i=1;i<=n;i++){
+        const r=el("div","row");
+        r.innerHTML=`<div class="vcov" style="display:grid;place-items:center">📖</div>
+          <div class="name"><b>Volume ${i}</b><span>${esc(m.title)}</span></div>
+          <a class="go" href="https://www.amazon.com/s?k=${enc(m.title+" Vol. "+i+" manga")}" target="_blank" rel="noopener">Buy ↗</a>`;
+        list.appendChild(r);
+      }
+      return;
+    }
+    list.innerHTML=`<div class="note">${IS_FILE?"⚠️ MangaDex blocks pages opened straight from disk (file://), and no volume count is on record for this title — see the buy links below, or host the app for full volume lists.":"Volume list not available for this title — see the buy links below."}</div>`;
+  };
+}
+
+function renderShops(box,m){
+  box.innerHTML="";
+  if(!LOC){box.appendChild(el("div","note","📍 Set your ZIP / postcode at the top to see real bookshops near you."));return;}
+  if(!LOC.shops.length){box.appendChild(el("div","note",`No bookshops are tagged near ${esc(LOC.label)}. Try a wider area, or buy online above.`));return;}
+  box.appendChild(el("div","note","No live feed tracks per-store manga stock, so call ahead to confirm they carry this title."));
+  LOC.shops.forEach(s=>{const r=el("div","row");
+    /* Link the exact OSM coordinates — searching Google Maps by shop NAME
+       near a point can jump to a different branch entirely. */
+    const pin=`https://www.google.com/maps/search/?api=1&query=${s.lat}%2C${s.lon}`;
+    const dir=`https://www.google.com/maps/dir/?api=1&destination=${s.lat}%2C${s.lon}`;
+    const act=s.phone?`<a class="go alt" href="tel:${esc(s.phone)}">📞 Call</a>`:`<a class="go alt" href="${pin}" target="_blank" rel="noopener">📍 Map</a>`;
+    r.innerHTML=`<div class="name"><b>${esc(s.name)}</b><span>${esc(s.addr||"Bookshop")}${s.phone?" · "+esc(s.phone):""}</span></div>
+      <span class="dist">${fmtDist(s.km,LOC.country)}</span><a class="go" href="${dir}" target="_blank" rel="noopener">Directions</a>${act}`;
+    box.appendChild(r);});
+}
+
+const EXAMPLES=["Chainsaw Man","Spy x Family","Berserk","Fruits Basket","Jujutsu Kaisen"];
+async function searchAndPick(term){
+  $("#q").value=term;$("#spin").classList.add("on");
+  try{
+    const items=await combinedSearch(term);
+    if(items.length){predData=items;$("#preds").classList.remove("on");choose(0);}
+    else{
+      $("#preds").innerHTML=`<div class="pred" style="cursor:default"><div class="pi"><b>⚠️ All manga databases are unreachable</b><span>Check your internet, or try again in a few seconds.</span></div></div>`;
+      $("#preds").classList.add("on");
+    }
+  }catch(e){}
+  finally{$("#spin").classList.remove("on");}
+}
+function renderChips(){const c=$("#chips");c.innerHTML="";EXAMPLES.forEach(x=>{const b=el("button","chip",x);b.onclick=()=>searchAndPick(x);c.appendChild(b);});}
+
+/* ---- Recommendations: based on what the user has actually searched ---- */
+let HIST=[];try{const h=localStorage.getItem("mm_hist");if(h)HIST=JSON.parse(h)||[];}catch(e){}
+function saveHist(){try{localStorage.setItem("mm_hist",JSON.stringify(HIST));}catch(e){}}
+function addHist(m){
+  if(!m||!m.id)return; // picks without a MAL id can't seed recs
+  HIST=[{id:m.id,title:m.title,img:m.img},...HIST.filter(h=>h.id!==m.id)].slice(0,6);
+  saveHist();loadRecs();
+}
+const recCache={};
+async function loadRecs(){
+  const wrap=$("#recs");
+  if(!HIST.length){wrap.classList.remove("on");return;}
+  const seed=HIST[0];
+  wrap.classList.add("on");
+  $("#rechead").innerHTML=`✨ Recommended for you <span>· because you searched <b>${esc(seed.title)}</b></span>`;
+  const rowBox=$("#recrow");
+  if(!recCache[seed.id]){
+    rowBox.innerHTML=`<div class="recload">Finding similar manga…</div>`;
+    try{
+      const r=await fetch(`https://api.jikan.moe/v4/manga/${seed.id}/recommendations`);
+      const j=r.ok?await r.json():{data:[]};
+      recCache[seed.id]=(j.data||[]).map(x=>x.entry).filter(Boolean);
+    }catch(e){recCache[seed.id]=[];}
+  }
+  if(HIST[0].id!==seed.id)return; // a newer pick arrived while we were fetching
+  const seen=new Set(HIST.map(h=>h.id));
+  const recs=recCache[seed.id].filter(e2=>!seen.has(e2.mal_id)).slice(0,10);
+  rowBox.innerHTML="";
+  if(!recs.length){rowBox.innerHTML=`<div class="recload">No community recommendations for this one yet — try picking another title.</div>`;return;}
+  recs.forEach(e2=>{
+    const c=el("button","reccard");
+    c.innerHTML=`<img loading="lazy" src="${esc(e2.images?.jpg?.image_url||"")}" alt="" onerror="this.style.visibility='hidden'"><span>${esc(e2.title)}</span>`;
+    c.onclick=()=>openById(e2.mal_id);
+    rowBox.appendChild(c);
+  });
+}
+async function openById(id){
+  $("#spin").classList.add("on");
+  try{
+    const r=await fetch(`https://api.jikan.moe/v4/manga/${id}`);
+    if(!r.ok)throw new Error("fetch failed");
+    const j=await r.json();
+    const m=mapManga(j.data);
+    CURRENT=m;$("#q").value=m.title;renderDetail(m);addHist(m);
+    $("#detail").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){$("#recrow").insertAdjacentHTML("afterbegin",`<div class="recload">⚠️ Couldn't load that one — try again in a moment.</div>`);}
+  finally{$("#spin").classList.remove("on");}
+}
+
+/* ================== LEARN TO DRAW ================== */
+
+/* ---- Curated video library. Every entry is a real, embeddable YouTube
+   tutorial (verified via YouTube's oEmbed API). Embeds use the privacy-
+   friendly youtube-nocookie.com player. Note: YouTube blocks embedding its
+   SEARCH PAGE in an iframe, so "search" here filters this library — plus a
+   one-click jump to a full YouTube search in a new tab. ---- */
+const VIDEOS=[
+ {id:"UNSXwmhPpvo",t:"Learn to Draw Anime Heads in 15 Minutes (Beginner Tutorial)",ch:"Draw Anime Academy",topics:["face"],lvl:"Beginner"},
+ {id:"bgI8pqezB-c",t:"How to Draw Faces for Beginners | Anime Manga Drawing Tutorial",ch:"Whyt Manga",topics:["face"],lvl:"Beginner"},
+ {id:"E-vPYpOxS5k",t:"How to Draw Anime Faces from Any Angle — Full Beginner Guide",ch:"June",topics:["face"],lvl:"Intermediate"},
+ {id:"1ieh4tJ_jp8",t:"How to Draw Anime Eyes Step by Step (Slow, No Time-lapse)",ch:"IRainLy",topics:["eyes"],lvl:"Beginner"},
+ {id:"wtrs7QaXAdE",t:"How to Draw Eyes for Beginners | Anime Manga Drawing Tutorial",ch:"Whyt Manga",topics:["eyes"],lvl:"Beginner"},
+ {id:"fYS4EffZNMY",t:"Anime Eyes at Angles — Full Process Tutorial for Beginners",ch:"Najwa",topics:["eyes"],lvl:"Intermediate"},
+ {id:"U8OQOAbQBVc",t:"Easy Way to Draw Anime Hair — Beginner Tutorial",ch:"Kiri Creates",topics:["hair"],lvl:"Beginner"},
+ {id:"YjrrN9YA1KQ",t:"How to Draw Anime Hair (Beginner Friendly) Step by Step",ch:"KenanCanDraw",topics:["hair"],lvl:"Beginner"},
+ {id:"04v1bl8Y_g4",t:"How to Draw Anime Hair Like a Pro — Beginner to Advanced",ch:"Arnav Chan",topics:["hair"],lvl:"Intermediate"},
+ {id:"4A9U-Xsypk8",t:"How to Draw Chibis (Calm & Simple Beginner Guide)",ch:"AaranTheArtist",topics:["chibi"],lvl:"Beginner"},
+ {id:"cf40wAFECNw",t:"How to Draw a Chibi Body Step by Step — Easy Beginner Tutorial",ch:"Artwork Pictures",topics:["chibi","body"],lvl:"Beginner"},
+ {id:"YLwSJYZeYOI",t:"Full Body Proportions for Beginners",ch:"SomeNormalArtist",topics:["body"],lvl:"Beginner"},
+ {id:"7FeAyo5VYMI",t:"How I Draw Anime Character Bodies Easily, Like a Pro",ch:"BeCreative871",topics:["body"],lvl:"Intermediate"},
+ {id:"Wnt0qDMbWuE",t:"How to Draw Emotions & Facial Expressions",ch:"Draw like a Sir",topics:["expressions","face"],lvl:"Beginner"},
+ {id:"nVuTeYix0EU",t:"How to Draw Anime Expressions — Basic to Extreme",ch:"Fluence Art",topics:["expressions"],lvl:"Intermediate"},
+ {id:"j-8rupxaXDc",t:"How to Draw Anime Hands Step by Step (Beginner Friendly)",ch:"LS The Secret",topics:["hands"],lvl:"Beginner"},
+ {id:"1FDrizAhPa8",t:"How to Draw Hands — Easy Anime Step by Step",ch:"mikeymegamega",topics:["hands"],lvl:"Intermediate"},
+ {id:"Q36JoIFrcsw",t:"How to Draw Dynamic Poses with Ease (Beginner Tutorial)",ch:"Burst of Art",topics:["poses","body"],lvl:"Intermediate"},
+ {id:"QEgU5x-mZvg",t:"How to Draw Dynamic Action Poses — Full Drawing Tutorial",ch:"Kaycem",topics:["poses","body"],lvl:"Advanced"},
+ {id:"S26amggeL-k",t:"Inking — How to Manga (with a pro mangaka)",ch:"The British Museum",topics:["inking"],lvl:"Intermediate"},
+ {id:"93lmcrNqhXc",t:"How to Color Your Drawings — Anime Cel-Shading Method",ch:"Marc Brunet",topics:["coloring"],lvl:"Intermediate"},
+ {id:"A6WkdEj54Bs",t:"Anime Style Coloring Tutorial, Explained",ch:"Whyt Manga",topics:["coloring"],lvl:"Intermediate"}
+];
+/* youtube-nocookie refuses to play without a referrer ("Error 153"), which is
+   what happens when this file is opened straight from disk (file://). Use the
+   standard player there, and the privacy-friendly one when properly hosted. */
+const YT_EMBED=location.protocol==="file:"?"https://www.youtube.com/embed/":"https://www.youtube-nocookie.com/embed/";
+const VTOPICS=[["all","✨ All"],["face","😊 Face"],["eyes","👁️ Eyes"],["hair","💇 Hair"],["body","🧍 Body"],["hands","✋ Hands"],["chibi","🍡 Chibi"],["expressions","😠 Expressions"],["poses","⚡ Poses"],["inking","🖋️ Inking"],["coloring","🎨 Coloring"]];
+let VQ="",VTOPIC="all",VLVL="All",liveTimer=null;
+
+function ytSearchUrl(){
+  const base=VQ.trim()||(VTOPIC!=="all"?"anime "+VTOPIC:"anime for beginners");
+  return `https://www.youtube.com/results?search_query=${enc("how to draw "+base+" drawing tutorial")}`;
+}
+function vidCard(v){
+  const card=el("div","vcard");
+  card.innerHTML=`<div class="vthumb"><img loading="lazy" src="https://i.ytimg.com/vi/${esc(v.id)}/hqdefault.jpg" alt="" onerror="this.parentNode.classList.add('noimg')"><button class="vplay" aria-label="Play video">▶</button></div>
+    <div class="vmeta"><b>${esc(v.t)}</b><span class="vch">${esc(v.ch)}</span>
+    <div class="vtags">${(v.topics||[]).map(t2=>`<span class="vtag">${esc(t2)}</span>`).join("")}${v.lvl?`<span class="vtag lvl">${esc(v.lvl)}</span>`:""}</div></div>`;
+  card.querySelector(".vthumb").onclick=function(){
+    if(this.classList.contains("playing"))return;
+    this.classList.add("playing");
+    this.innerHTML=`<iframe src="${YT_EMBED}${esc(v.id)}?autoplay=1" title="${esc(v.t)}" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+  };
+  return card;
+}
+function filterVids(){
+  const words=VQ.toLowerCase().split(/\s+/).filter(Boolean);
+  return VIDEOS.filter(v=>{
+    if(VTOPIC!=="all"&&!(v.topics||[]).includes(VTOPIC))return false;
+    if(VLVL!=="All"&&v.lvl!==VLVL)return false;
+    if(words.length){const hay=(v.t+" "+v.ch+" "+(v.topics||[]).join(" ")+" "+v.lvl).toLowerCase();
+      if(!words.every(w=>hay.includes(w)))return false;}
+    return true;
+  });
+}
+function renderVids(list,statusHtml){
+  $("#ytall").href=ytSearchUrl();
+  const grid=$("#vidgrid");grid.innerHTML="";
+  $("#vidstatus").innerHTML=statusHtml||`${list.length} tutorial${list.length===1?"":"s"} in the library`;
+  if(!list.length){
+    $("#vidstatus").innerHTML=`Nothing in the library matches “${esc(VQ.trim())}” — checking the character database…`;
+    clearTimeout(charTimer);
+    charTimer=setTimeout(()=>charFlow(VQ.trim()),450); // debounced: Jikan rate-limits bursts
+    return;
+  }
+  list.forEach(v=>grid.appendChild(vidCard(v)));
+}
+let charTimer=null;
+/* ---- Character drawing engine (keyless, powered by MyAnimeList's character
+   database via Jikan). A query with no library matches is treated as a
+   character name: fetch their official portrait + build a drawing guide. ---- */
+async function charSearch(q){
+  const r=await fetch(`https://api.jikan.moe/v4/characters?q=${enc(q)}&limit=5&order_by=favorites&sort=desc`);
+  if(!r.ok)throw new Error("character search failed");
+  const j=await r.json();
+  return (j.data||[]).filter(c=>c.images?.jpg?.image_url&&!/questionmark|icon-/.test(c.images.jpg.image_url))
+    .map(c=>({name:(c.name||"").split(", ").reverse().join(" ").trim(),
+      img:c.images.jpg.image_url,
+      about:(c.about||"").replace(/\s+/g," ").trim().slice(0,180)}));
+}
+async function charFlow(q){
+  const grid=$("#vidgrid");
+  let chars=[];
+  try{ chars=await charSearch(q); }catch(e){ chars=[]; }
+  if(VQ.trim()!==q)return; // user kept typing — this result is stale
+  grid.innerHTML="";
+  if(!chars.length){
+    $("#vidstatus").innerHTML="";
+    grid.appendChild(charPanel(q));
+    return;
+  }
+  $("#vidstatus").innerHTML=`🎯 Found them! Here's your drawing guide:`;
+  grid.appendChild(charGuide(q,chars,0));
+}
+function charGuide(q,chars,sel){
+  const c=chars[sel];
+  const div=el("div","charguide");
+  div.innerHTML=`
+   <div class="cgtop">
+     <img src="${esc(c.img)}" alt="${esc(c.name)}" onerror="this.style.display='none'">
+     <div class="cginfo">
+       <b>${esc(c.name)}</b>
+       ${c.about?`<p>${esc(c.about)}…</p>`:`<p>Use the portrait as your drawing reference.</p>`}
+       <div class="cgbtns">
+        <a class="go" href="https://www.youtube.com/results?search_query=${enc("how to draw "+c.name)}" target="_blank" rel="noopener">▶ Video tutorials ↗</a>
+        <a class="go alt" href="https://www.google.com/search?tbm=isch&q=${enc(c.name+" official art")}" target="_blank" rel="noopener">🖼 More reference art ↗</a>
+       </div>
+     </div>
+   </div>
+   <div class="cgsteps"><b>How to draw ${esc(c.name.split(" ")[0])}, step by step:</b>
+    <ol class="steps">
+     <li><b>Study the portrait.</b> Squint at it — what shapes are the hair, eyes and outfit? Write down the 3 details that make ${esc(c.name.split(" ")[0])} instantly recognisable.</li>
+     <li><b>Build the base head first.</b> Use the interactive face guide further down this page: circle → jaw → light guidelines. Every character starts from the same skeleton.</li>
+     <li><b>Map the features.</b> Place the eyes on your eye line, but copy their <b>shape</b> from the portrait — sharp or soft? big pupils or slits? Thick or thin brows?</li>
+     <li><b>Hair as big chunks.</b> Draw the whole silhouette first, then split it into strands. Hair is the #1 thing that makes a character read as *them*.</li>
+     <li><b>Add the signature details</b> — the 3 things from step 1: accessories, markings, collar, ribbon, scars…</li>
+     <li><b>Ink &amp; finish.</b> Erase guides, thicken the outer lines, then color using the portrait as your palette.</li>
+    </ol></div>
+   ${chars.length>1?`<div class="cgalts"><span>Not the right one?</span></div>`:""}`;
+  if(chars.length>1){
+    const alts=div.querySelector(".cgalts");
+    chars.forEach((x,i)=>{ if(i===sel)return;
+      const b=el("button","chip",esc(x.name));
+      b.onclick=()=>{div.replaceWith(charGuide(q,chars,i));};
+      alts.appendChild(b);});
+  }
+  return div;
+}
+/* Zero library matches usually means a character name ("Nezuko", "Goku"…).
+   YouTube blocks embedding its search page in an iframe, so without an API
+   key we hand off to YouTube in a new tab with a ready-made search. */
+function charPanel(q){
+  const div=el("div","charcard");
+  div.innerHTML=`<div class="big">🎯</div>
+    <b>Want to draw “${esc(q)}”?</b>
+    <p>That's not one of the built-in lessons, but YouTube is full of tutorials for it:</p>
+    <a class="go" href="https://www.youtube.com/results?search_query=${enc("how to draw "+q)}" target="_blank" rel="noopener">▶ “How to draw ${esc(q)}” on YouTube ↗</a>
+    <a class="go alt" href="https://www.youtube.com/results?search_query=${enc("how to draw "+q+" step by step for beginners")}" target="_blank" rel="noopener">Beginner step-by-step version ↗</a>
+    <p class="small">Tip: paste a free YouTube API key into CONFIG at the top of this file and character searches will play right here in the app.</p>`;
+  return div;
+}
+async function liveYtSearch(){
+  const q=VQ.trim();
+  $("#vidstatus").innerHTML="Searching all of YouTube…";
+  try{
+    const u=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&safeSearch=strict&maxResults=12&q=${enc("how to draw "+q+" anime tutorial")}&key=${enc(CONFIG.YOUTUBE_API_KEY)}`;
+    const r=await fetch(u);
+    if(!r.ok)throw new Error("YouTube API error "+r.status);
+    const j=await r.json();
+    const dec=s=>{const d=document.createElement("textarea");d.innerHTML=s||"";return d.value;};
+    const list=(j.items||[]).filter(it=>it.id&&it.id.videoId).map(it=>({id:it.id.videoId,t:dec(it.snippet.title),ch:dec(it.snippet.channelTitle),topics:[],lvl:""}));
+    renderVids(list,`🔴 Live results from YouTube for “${esc(q)}” · <a href="${ytSearchUrl()}" target="_blank" rel="noopener">open on YouTube ↗</a>`);
+  }catch(e){
+    renderVids(filterVids(),`⚠️ Live YouTube search failed — showing the built-in library instead.`);
+  }
+}
+function updateVids(){
+  clearTimeout(liveTimer);
+  if(CONFIG.YOUTUBE_API_KEY&&VQ.trim().length>1){liveTimer=setTimeout(liveYtSearch,420);return;}
+  renderVids(filterVids());
+}
+function renderVidBars(){
+  const tb=$("#vtopics");tb.innerHTML="";
+  VTOPICS.forEach(([k,label])=>{
+    const b=el("button","chip"+(VTOPIC===k?" on":""),label);
+    b.onclick=()=>{VTOPIC=k;renderVidBars();updateVids();};
+    tb.appendChild(b);});
+  const lb=$("#vlvls");lb.innerHTML="";
+  ["All","Beginner","Intermediate","Advanced"].forEach(l=>{
+    const b=el("button","chip"+(VLVL===l?" on":""),l);
+    b.onclick=()=>{VLVL=l;renderVidBars();updateVids();};
+    lb.appendChild(b);});
+}
+
+/* ---- curated external written guides ---- */
+const RESOURCES=[
+ ["AnimeOutline","Free step-by-step written tutorials with big, clear diagrams","https://www.animeoutline.com/"],
+ ["Clip Studio Tips","Official drawing articles from the app most manga pros use","https://tips.clip-studio.com/en-us/"],
+ ["GVAAT's Workshop","In-depth guides on anime anatomy, eyes, hands and expressions","https://gvaat.com/blog/"],
+ ["Easy Drawing Guides","Simple printable how-to-draw guides for younger artists","https://easydrawingguides.com/"]];
+function renderResources(){
+  const box=$("#resSec");box.innerHTML="";
+  RESOURCES.forEach(([name,desc,url])=>{const r=el("div","row");
+    r.innerHTML=`<div class="name"><b>${esc(name)}</b><span>${esc(desc)}</span></div><a class="go alt" href="${esc(url)}" target="_blank" rel="noopener">Open ↗</a>`;
+    box.appendChild(r);});
+}
+
+/* ---- Interactive step-by-step SVG lessons ---- */
+const FACE_SVG=`<svg viewBox="0 0 240 300" class="dsvg">
+  <g data-g="3"><line class="guide" x1="120" y1="36" x2="120" y2="260"/><line class="guide" x1="58" y1="152" x2="182" y2="152"/>
+    <line class="guide" x1="96" y1="198" x2="144" y2="198"/><line class="guide" x1="100" y1="222" x2="140" y2="222"/></g>
+  <g data-g="1"><circle class="ink" cx="120" cy="112" r="70"/></g>
+  <g data-g="2"><path class="ink" d="M58,138 Q64,214 120,250 Q176,214 182,138"/></g>
+  <g data-g="4">
+    <path class="ink bold" d="M74,146 Q92,136 110,146"/><path class="ink" d="M80,164 Q94,170 108,163"/>
+    <ellipse class="ink" cx="92" cy="155" rx="12" ry="14"/>
+    <path class="shade" d="M81,149 Q92,141 103,149 L103,155 Q92,147 81,155 Z"/>
+    <ellipse class="fill" cx="92" cy="157" rx="4.5" ry="6"/><circle class="shine" cx="87" cy="149" r="3.5"/>
+    <path class="ink bold" d="M130,146 Q148,136 166,146"/><path class="ink" d="M132,163 Q146,170 160,164"/>
+    <ellipse class="ink" cx="148" cy="155" rx="12" ry="14"/>
+    <path class="shade" d="M137,149 Q148,141 159,149 L159,155 Q148,147 137,155 Z"/>
+    <ellipse class="fill" cx="148" cy="157" rx="4.5" ry="6"/><circle class="shine" cx="143" cy="149" r="3.5"/></g>
+  <g data-g="5">
+    <path class="ink" d="M76,128 Q92,120 108,127"/><path class="ink" d="M132,127 Q148,120 164,128"/>
+    <path class="ink" d="M120,193 L116,201"/><path class="ink" d="M108,222 Q120,229 132,222"/>
+    <ellipse class="soft" cx="78" cy="176" rx="10" ry="5"/><ellipse class="soft" cx="162" cy="176" rx="10" ry="5"/></g>
+  <g data-g="6">
+    <path class="ink" d="M56,150 Q46,160 56,174"/><path class="ink" d="M184,150 Q194,160 184,174"/>
+    <path class="ink" d="M46,120 Q30,34 120,26 Q210,34 194,120"/>
+    <path class="ink" d="M52,116 L70,84 L84,124 L100,80 L116,128 L132,82 L148,124 L164,84 L188,116"/>
+    <path class="ink" d="M50,120 Q42,178 56,214"/><path class="ink" d="M190,120 Q198,178 184,214"/></g>
+</svg>`;
+const EYE_SVG=`<svg viewBox="0 0 240 160" class="dsvg">
+  <g data-g="1"><path class="ink bold" d="M28,80 Q108,34 192,60 L216,50"/></g>
+  <g data-g="2"><path class="ink" d="M56,106 Q120,122 188,100"/></g>
+  <g data-g="3"><ellipse class="ink" cx="116" cy="88" rx="34" ry="42"/></g>
+  <g data-g="4"><path class="shade" d="M84,66 Q116,50 148,66 L148,84 Q116,68 84,84 Z"/></g>
+  <g data-g="5"><ellipse class="fill" cx="116" cy="94" rx="11" ry="15"/></g>
+  <g data-g="6"><circle class="shine" cx="102" cy="70" r="9"/><circle class="shine" cx="132" cy="108" r="4"/></g>
+  <g data-g="7"><path class="ink" d="M188,62 L206,50"/><path class="ink" d="M180,52 L194,36"/><path class="ink" d="M168,44 L178,28"/>
+    <path class="ink" d="M52,34 Q124,10 204,30"/></g>
+</svg>`;
+const HAIR_SVG=`<svg viewBox="0 0 240 290" class="dsvg">
+  <g data-g="1"><circle class="ink" cx="120" cy="118" r="66"/><path class="ink" d="M62,142 Q70,212 120,240 Q170,212 178,142"/>
+    <line class="guide" x1="120" y1="46" x2="120" y2="244"/><line class="guide" x1="66" y1="150" x2="174" y2="150"/></g>
+  <g data-g="2"><path class="guide" d="M68,100 Q120,70 172,100"/></g>
+  <g data-g="3"><path class="ink" d="M58,124 L76,92 L90,130 L106,88 L120,134 L134,88 L150,130 L164,92 L182,124"/></g>
+  <g data-g="4"><path class="ink" d="M58,124 Q46,190 62,232"/><path class="ink" d="M182,124 Q194,190 178,232"/></g>
+  <g data-g="5"><path class="ink" d="M50,120 Q34,38 120,30 Q206,38 190,120"/>
+    <path class="ink" d="M92,38 L102,14 L112,36"/><path class="ink" d="M136,35 L148,12 L158,36"/></g>
+  <g data-g="6"><path class="ink" d="M84,74 L98,66 L92,80 L108,70 L102,84 L118,74"/></g>
+</svg>`;
+const CHIBI_SVG=`<svg viewBox="0 0 220 330" class="dsvg">
+  <g data-g="1"><circle class="ink" cx="110" cy="96" r="74"/></g>
+  <g data-g="2"><line class="guide" x1="110" y1="20" x2="110" y2="318"/><line class="guide" x1="46" y1="118" x2="174" y2="118"/>
+    <line class="guide" x1="30" y1="170" x2="190" y2="170"/><text x="140" y="182" font-size="9">½ way = chin!</text></g>
+  <g data-g="3"><path class="ink" d="M86,172 Q80,232 92,246 L128,246 Q140,232 134,172"/>
+    <path class="ink" d="M86,180 Q64,198 72,216"/><path class="ink" d="M134,180 Q156,198 148,216"/>
+    <path class="ink" d="M96,246 L92,290"/><path class="ink" d="M124,246 L128,290"/>
+    <path class="ink" d="M84,292 L98,290"/><path class="ink" d="M122,290 L136,292"/></g>
+  <g data-g="4"><ellipse class="fill" cx="76" cy="124" rx="13" ry="17"/><ellipse class="fill" cx="144" cy="124" rx="13" ry="17"/>
+    <circle class="shine" cx="71" cy="116" r="4.5"/><circle class="shine" cx="139" cy="116" r="4.5"/>
+    <circle class="shine" cx="81" cy="132" r="2"/><circle class="shine" cx="149" cy="132" r="2"/>
+    <path class="ink" d="M102,150 Q110,157 118,150"/></g>
+  <g data-g="5"><path class="ink" d="M48,112 L66,80 L82,116 L98,76 L112,118 L126,76 L142,116 L158,80 L172,112"/>
+    <path class="ink" d="M42,108 Q30,30 110,24 Q190,30 178,108"/></g>
+  <g data-g="6"><ellipse class="soft" cx="66" cy="142" rx="9" ry="4.5"/><ellipse class="soft" cx="154" cy="142" rx="9" ry="4.5"/></g>
+</svg>`;
+const THREEQ_SVG=`<svg viewBox="0 0 240 300" class="dsvg">
+  <g data-g="1"><circle class="ink" cx="128" cy="112" r="68"/></g>
+  <g data-g="2"><path class="guide" d="M94,50 Q64,112 94,174"/><path class="guide" d="M62,148 Q128,164 194,144"/></g>
+  <g data-g="3"><path class="ink" d="M62,148 Q70,212 102,238 Q156,222 190,150"/></g>
+  <g data-g="4">
+    <path class="ink bold" d="M76,150 Q86,142 98,149"/><ellipse class="ink" cx="87" cy="157" rx="8" ry="12"/>
+    <ellipse class="fill" cx="87" cy="159" rx="3" ry="4.5"/><circle class="shine" cx="84" cy="151" r="2.5"/>
+    <path class="ink bold" d="M126,152 Q144,142 162,150"/><ellipse class="ink" cx="143" cy="159" rx="11" ry="13"/>
+    <ellipse class="fill" cx="143" cy="161" rx="4" ry="5.5"/><circle class="shine" cx="138" cy="152" r="3"/></g>
+  <g data-g="5"><path class="ink" d="M94,174 Q86,188 96,194"/><path class="ink" d="M112,214 Q124,220 134,214"/>
+    <path class="ink" d="M74,134 Q88,128 100,133"/><path class="ink" d="M124,134 Q144,126 162,133"/></g>
+  <g data-g="6"><path class="ink" d="M182,158 Q194,168 184,184"/>
+    <path class="ink" d="M64,120 Q52,34 136,28 Q214,40 196,124"/>
+    <path class="ink" d="M70,116 Q92,84 110,116 L118,84 L132,120 L146,86 L160,118 L176,94 L188,122"/></g>
+</svg>`;
+const EXPR_SVG=`<svg viewBox="0 0 240 260" class="dsvg">
+  <g data-g="1"><circle class="ink" cx="120" cy="104" r="62"/><path class="ink" d="M66,128 Q72,192 120,220 Q168,192 174,128"/>
+    <path class="ink" d="M56,110 Q44,34 120,28 Q196,34 184,110"/>
+    <path class="ink" d="M62,106 L80,78 L96,110 L112,76 L126,112 L142,78 L158,108 L172,84 L182,106"/></g>
+  <g data-g="2"><path class="ink" d="M84,140 Q94,130 104,140"/><path class="ink" d="M136,140 Q146,130 156,140"/>
+    <path class="ink" d="M100,174 Q120,196 140,174 Q120,182 100,174"/>
+    <ellipse class="soft" cx="82" cy="158" rx="9" ry="4.5"/><ellipse class="soft" cx="158" cy="158" rx="9" ry="4.5"/></g>
+  <g data-g="3"><path class="ink" d="M82,124 L106,136"/><path class="ink" d="M158,124 L134,136"/>
+    <path class="ink" d="M86,146 L104,146"/><circle class="fill" cx="95" cy="149" r="3"/>
+    <path class="ink" d="M136,146 L154,146"/><circle class="fill" cx="145" cy="149" r="3"/>
+    <path class="ink" d="M100,178 L140,178"/><path class="ink" d="M100,186 L140,186"/>
+    <path class="ink" d="M110,178 L110,186"/><path class="ink" d="M120,178 L120,186"/><path class="ink" d="M130,178 L130,186"/>
+    <path class="ink" d="M166,72 L178,84"/><path class="ink" d="M178,72 L166,84"/></g>
+  <g data-g="4"><circle class="ink" cx="94" cy="146" r="11"/><circle class="fill" cx="94" cy="146" r="3"/>
+    <circle class="ink" cx="146" cy="146" r="11"/><circle class="fill" cx="146" cy="146" r="3"/>
+    <path class="ink" d="M82,116 Q94,110 106,116"/><path class="ink" d="M134,116 Q146,110 158,116"/>
+    <ellipse class="ink" cx="120" cy="184" rx="9" ry="12"/>
+    <path class="shine" d="M176,112 Q182,124 176,128 Q170,124 176,112"/></g>
+  <g data-g="5"><path class="ink" d="M84,126 Q96,132 106,136"/><path class="ink" d="M156,126 Q144,132 134,136"/>
+    <path class="ink" d="M86,148 Q95,154 104,148"/><path class="ink" d="M136,148 Q145,154 154,148"/>
+    <path class="ink" d="M104,184 Q120,174 136,184"/>
+    <path class="shine" d="M96,158 Q100,168 96,172 Q92,168 96,158"/></g>
+</svg>`;
+const BODY_SVG=`<svg viewBox="0 0 220 372" class="dsvg">
+  <g data-g="1">
+    ${[0,1,2,3,4,5,6,7,8].map(k=>`<line class="guide" x1="46" y1="${18+42*k}" x2="176" y2="${18+42*k}"/>`).join("")}
+    ${[0,1,2,3,4,5,6,7].map(k=>`<text x="33" y="${22+42*k}" font-size="9">${k}</text>`).join("")}
+    <text x="120" y="12" font-size="8.5">heads</text></g>
+  <g data-g="2">
+    <circle class="ink" cx="111" cy="39" r="20"/><line class="ink" x1="111" y1="59" x2="111" y2="70"/>
+    <ellipse class="ink" cx="111" cy="102" rx="26" ry="30"/><ellipse class="ink" cx="111" cy="168" rx="21" ry="20"/>
+    <path class="ink" d="M88,80 L74,120 L70,166"/><path class="ink" d="M134,80 L148,120 L152,166"/>
+    <path class="ink" d="M99,186 L96,270 L104,346"/><path class="ink" d="M123,186 L126,270 L118,346"/>
+    <line class="ink" x1="97" y1="346" x2="110" y2="346"/><line class="ink" x1="117" y1="346" x2="130" y2="346"/></g>
+  <g data-g="3">
+    <text x="150" y="43" font-size="8.5">1 head</text><text x="150" y="84" font-size="8.5">shoulders ~1½</text>
+    <text x="150" y="106" font-size="8.5">chest 2</text><text x="150" y="148" font-size="8.5">waist 3</text>
+    <text x="150" y="172" font-size="8.5">hips 4 (½)</text><text x="150" y="274" font-size="8.5">knees 6</text>
+    <text x="150" y="344" font-size="8.5">feet ~7½</text></g>
+</svg>`;
+const ACTION_SVG=`<svg viewBox="0 0 240 340" class="dsvg">
+  <g data-g="1"><path class="guide" d="M74,36 Q170,150 92,318"/></g>
+  <g data-g="2"><circle class="ink" cx="82" cy="50" r="17"/><line class="ink" x1="92" y1="64" x2="106" y2="96"/>
+    <ellipse class="ink" cx="120" cy="128" rx="27" ry="35"/><ellipse class="ink" cx="108" cy="200" rx="23" ry="19"/></g>
+  <g data-g="3"><path class="ink" d="M144,110 L198,82 L224,90"/><circle class="ink" cx="228" cy="92" r="7"/>
+    <path class="ink" d="M98,118 L64,150 L60,184"/><circle class="ink" cx="58" cy="190" r="5"/>
+    <path class="ink" d="M120,214 L164,258 L158,314"/><path class="ink" d="M158,314 L176,318"/>
+    <path class="ink" d="M98,214 L56,250 L34,298"/><path class="ink" d="M34,298 L20,296"/></g>
+  <g data-g="4"><circle class="fill" cx="198" cy="82" r="3.5"/><circle class="fill" cx="64" cy="150" r="3.5"/>
+    <circle class="fill" cx="164" cy="258" r="3.5"/><circle class="fill" cx="56" cy="250" r="3.5"/></g>
+  <g data-g="5"><path class="ink" d="M104,96 Q84,160 94,212"/><path class="ink" d="M142,100 Q152,160 126,214"/>
+    <path class="guide" d="M112,96 Q124,130 112,180"/></g>
+</svg>`;
+
+const LESSONS=[
+ {id:"face",icon:"😊",title:"An anime face (front view)",level:"Beginner",meta:"circle + cross · big layered eyes",
+  intro:"The classic construction — but with proper anime features: eyes built in layers (lid → iris → shade → pupil → shine), a tiny nose, spiky bangs and blush.",svg:FACE_SVG,steps:[
+   {cap:"<b>Step 1.</b> Start with a <b>circle</b> for the skull.",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> Add the <b>jaw</b> — anime chins taper to a soft point.",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> Light <b>guides</b>: centre line, eye line, then nose and mouth lines below.",show:[1,2,3],hl:3},
+   {cap:"<b>Step 4.</b> Build each <b>eye in layers</b>: bold top lid, thin bottom lid, big iris, shaded top, pupil, white shine. Leave a one-eye gap between them.",show:[1,2,3,4],hl:4},
+   {cap:"<b>Step 5.</b> <b>Brows</b> above, a <b>tiny nose tick</b> (anime noses are small!), a simple <b>mouth</b>, and soft <b>blush</b> ovals.",show:[1,2,3,4,5],hl:5},
+   {cap:"<b>Step 6.</b> <b>Ears</b> between the eye and nose lines, then <b>hair</b>: outer volume sits ABOVE the skull, with zigzag bangs and side locks.",show:[1,2,3,4,5,6],hl:6},
+   {cap:"<b>Done!</b> Erase the guides — the layered eyes and spiky bangs are what make it read as anime. ✨",show:[1,2,4,5,6],hl:0}]},
+ {id:"eyes",icon:"👁️",title:"An anime eye",level:"Beginner",meta:"lid → iris → shade → shine",
+  intro:"Anime eyes are tall, not round. The bold top lid with a flick, the shaded upper iris and TWO shines are what sell the look.",svg:EYE_SVG,steps:[
+   {cap:"<b>Step 1.</b> A <b>bold top lid</b> — thickest line in the whole drawing — with a little <b>flick</b> at the outer corner.",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> A thin <b>bottom lid</b>. Leave the corners open — anime eyes aren't closed shapes.",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> A <b>tall oval iris</b> tucked up under the top lid.",show:[1,2,3],hl:3},
+   {cap:"<b>Step 4.</b> <b>Shade the top</b> of the iris — the lid casts a shadow. This one band makes it look glossy.",show:[1,2,3,4],hl:4},
+   {cap:"<b>Step 5.</b> A dark <b>pupil</b>, slightly low in the iris.",show:[1,2,3,4,5],hl:5},
+   {cap:"<b>Step 6.</b> <b>Two shines</b>: one big (top, toward the light) + one small (opposite corner). Never colour over them!",show:[1,2,3,4,5,6],hl:6},
+   {cap:"<b>Step 7.</b> A few <b>lashes</b> off the flick, and a <b>brow</b> following the lid's angle. Mirror everything for the other eye.",show:[1,2,3,4,5,6,7],hl:7}]},
+ {id:"hair",icon:"💇",title:"Anime hair (spikes & bangs)",level:"Beginner",meta:"hairline → chunks, never strands",
+  intro:"The secret to anime hair: draw it in big chunks growing from the hairline, and give it volume — it should sit clearly ABOVE the skull, never hug it.",svg:HAIR_SVG,steps:[
+   {cap:"<b>Step 1.</b> Start from a finished <b>head base</b> (see the face lesson).",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> Sketch the <b>hairline</b> — a light arc across the top of the forehead. All the hair grows from here.",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> <b>Bangs</b>: zigzag chunks hanging from the hairline. Vary the spike sizes — even spikes look stiff.",show:[1,2,3],hl:3},
+   {cap:"<b>Step 4.</b> <b>Side locks</b> framing the face, falling past the jaw.",show:[1,2,3,4],hl:4},
+   {cap:"<b>Step 5.</b> The <b>outer silhouette</b> — notice the gap between hair and skull. That gap is the volume. Add a couple of top spikes.",show:[1,2,3,4,5],hl:5},
+   {cap:"<b>Step 6.</b> A zigzag <b>shine band</b> where light hits. Done — chunks, not strands! ✂️",show:[1,2,3,4,5,6],hl:6}]},
+ {id:"chibi",icon:"🍡",title:"A chibi character",level:"Beginner",meta:"2 heads tall · giant eyes",
+  intro:"Chibi = super-deformed cute style. The whole trick is proportion: the head is HALF the body, the eyes are huge, and the nose disappears.",svg:CHIBI_SVG,steps:[
+   {cap:"<b>Step 1.</b> A <b>giant circle</b> — in chibi style the head is half the character's whole height.",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> <b>Guides</b>: centre line, a LOW eye line (chibi eyes sit low), and a halfway line where the body will end.",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> A tiny <b>bean body</b> with stubby arms and legs — no muscles, no details.",show:[1,2,3],hl:3},
+   {cap:"<b>Step 4.</b> <b>Huge solid eyes</b> with big shines, and a tiny mouth. Skip the nose entirely — that's the chibi rule.",show:[1,2,3,4],hl:4},
+   {cap:"<b>Step 5.</b> <b>Hair</b> even bigger than the skull — exaggeration is the whole style.",show:[1,2,3,4,5],hl:5},
+   {cap:"<b>Step 6.</b> <b>Blush marks</b> to finish. Maximum cute achieved. 🍓",show:[1,2,3,4,5,6],hl:6}]},
+ {id:"threeq",icon:"↩️",title:"Face in ¾ view",level:"Intermediate",meta:"curved guides · foreshortening",
+  intro:"The view most manga panels actually use. Everything you know from the front view still applies — but the guide lines CURVE, and the far side gets smaller.",svg:THREEQ_SVG,steps:[
+   {cap:"<b>Step 1.</b> Same <b>circle</b> as always.",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> Now the <b>guides curve</b>: the centre line bends toward the far side of the face, and the eye line wraps around.",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> The <b>jaw</b> — with the chin shifted toward the near side, under the curved centre line.",show:[1,2,3],hl:3},
+   {cap:"<b>Step 4.</b> <b>Foreshortening</b>: the far eye is narrower and smaller than the near eye. This is the step that makes or breaks the ¾ view.",show:[1,2,3,4],hl:4},
+   {cap:"<b>Step 5.</b> The <b>nose pokes past</b> the centre line, and the mouth shifts toward the near side. Brows follow the curve.",show:[1,2,3,4,5],hl:5},
+   {cap:"<b>Step 6.</b> The <b>ear</b> sits on the near side, then hair sweeping across.",show:[1,2,3,4,5,6],hl:6},
+   {cap:"<b>Done!</b> Guides erased. Compare the two eyes — that size difference is the whole trick.",show:[3,4,5,6],hl:0}]},
+ {id:"expr",icon:"😠",title:"Expressions (1 face, 4 moods)",level:"Intermediate",meta:"eyebrows do the acting",
+  intro:"Same base face every time — only the eyebrows, eyes and mouth change. Anime also borrows symbols: anger crosses, sweat drops, tears.",svg:EXPR_SVG,steps:[
+   {cap:"<b>Step 1.</b> The <b>base face</b> — this exact head works for every emotion below.",show:[1],hl:1},
+   {cap:"<b>Happy 😊</b> — eyes close into <b>upward arcs</b>, big open smile, blush.",show:[1,2],hl:2},
+   {cap:"<b>Angry 😠</b> — brows slam down into a <b>V</b>, eyes narrow to slits, gritted teeth… plus the classic anime <b>anger cross</b> on the temple.",show:[1,3],hl:3},
+   {cap:"<b>Surprised 😲</b> — brows fly UP, irises <b>shrink to dots</b> inside wide circles, mouth becomes an O, add a sweat drop.",show:[1,4],hl:4},
+   {cap:"<b>Sad 😢</b> — brows tilt up at the inner ends, eyes droop into downward arcs, mouth turns down, one tear.",show:[1,5],hl:5},
+   {cap:"<b>The secret:</b> cover the mouth with your finger — you can STILL read every emotion from the eyebrows alone. They do most of the acting.",show:[1,2],hl:0}]},
+ {id:"body",icon:"🧍",title:"Body proportions",level:"Intermediate",meta:"measure in “heads”",
+  intro:"The most popular way to get proportions right: measure the whole body in head-lengths. A teen anime character is about 7 heads tall.",svg:BODY_SVG,steps:[
+   {cap:"<b>Step 1.</b> Stack <b>equal boxes</b> — each one is one head tall. Aim for about 7.",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> Fit the <b>figure</b> in: head in box 1, hips at the halfway point (≈4).",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> Line up the <b>landmarks</b>: shoulders ~1½, chest 2, waist 3, hips 4, knees 6, feet ~7½.",show:[1,2,3],hl:3}]},
+ {id:"action",icon:"⚡",title:"A dynamic action pose",level:"Advanced",meta:"line of action first",
+  intro:"Every good action pose starts as ONE sweeping curve. Build the body onto that curve and the energy stays, no matter how rough your lines are.",svg:ACTION_SVG,steps:[
+   {cap:"<b>Step 1.</b> The <b>line of action</b> — one big confident curve. Draw it fast; if it feels stiff, redraw the curve, not the pose.",show:[1],hl:1},
+   {cap:"<b>Step 2.</b> Hang the <b>three masses</b> on the curve: head, ribcage, hips. Tilt them in different directions for energy.",show:[1,2],hl:2},
+   {cap:"<b>Step 3.</b> <b>Limbs as simple lines</b> — let the punching arm reach way past the body. Exaggerate more than feels safe; anime poses are pushed.",show:[1,2,3],hl:3},
+   {cap:"<b>Step 4.</b> Dot the <b>joints</b> (elbows, knees) so the bends read clearly.",show:[1,2,3,4],hl:4},
+   {cap:"<b>Step 5.</b> Wrap <b>contours</b> around the structure to give it flesh — the guide curve still shows through the whole pose. 💥",show:[1,2,3,4,5],hl:5}]}
+];
+
+function buildLesson(stage,L){
+  stage.innerHTML=`${L.svg}<div class="stepbar"><button class="sbtn" data-d="-1">‹ Back</button><span class="scount"></span><button class="sbtn" data-d="1">Next ›</button></div><div class="sdots"></div><div class="scap"></div>`;
+  const svg=stage.querySelector("svg"), groups=[...svg.querySelectorAll("[data-g]")];
+  const btns=stage.querySelectorAll(".sbtn"); let step=0;
+  const dots=stage.querySelector(".sdots");
+  L.steps.forEach((_,i)=>{const d=el("button","sdot");d.setAttribute("aria-label","Step "+(i+1));d.onclick=()=>{step=i;apply();};dots.appendChild(d);});
+  function apply(){
+    const s=L.steps[step];
+    groups.forEach(g=>{const id=+g.getAttribute("data-g");g.style.display=s.show.includes(id)?"":"none";g.classList.toggle("hl",id===s.hl);});
+    stage.querySelector(".scount").textContent=`Step ${step+1} / ${L.steps.length}`;
+    stage.querySelector(".scap").innerHTML=s.cap;
+    [...dots.children].forEach((d,i)=>d.classList.toggle("on",i===step));
+    btns[0].disabled=step===0; btns[1].disabled=step===L.steps.length-1;
+  }
+  btns.forEach(b=>b.onclick=()=>{step=Math.min(L.steps.length-1,Math.max(0,step+(+b.dataset.d)));apply();});
+  apply();
+}
+let LVL="All";
+function renderLvlBar(){
+  const bar=$("#lvlbar");bar.innerHTML="";
+  ["All","Beginner","Intermediate","Advanced"].forEach(l=>{
+    const b=el("button","chip"+(LVL===l?" on":""),l);
+    b.onclick=()=>{LVL=l;renderLvlBar();renderTutorials();};
+    bar.appendChild(b);});
+}
+function renderTutorials(){
+  const box=$("#tutorials");box.innerHTML="";
+  const list=LESSONS.filter(L=>LVL==="All"||L.level===LVL);
+  if(!list.length){box.appendChild(el("div","note","No lessons at this level yet."));return;}
+  list.forEach((L,idx)=>{
+    const card=el("div","tut"+(idx===0?" open":""));
+    const head=el("div","tut-head");
+    head.innerHTML=`<div class="tut-ico">${L.icon}</div><div class="t"><h3>${L.title}</h3><div class="meta">${L.meta} · ${L.steps.length} steps</div></div><span class="level">${L.level}</span><span class="caret">▾</span>`;
+    head.onclick=()=>card.classList.toggle("open");
+    const body=el("div","tut-body");
+    if(L.intro) body.appendChild(el("p","lintro",L.intro));
+    const stage=el("div","lstage"); body.appendChild(stage);
+    card.append(head,body); box.appendChild(card);
+    buildLesson(stage,L);
+  });
+}
+
+/* tabs + wiring */
+document.querySelectorAll(".tab").forEach(b=>{b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active");};});
+$("#q").addEventListener("input",e=>{const v=e.target.value.trim();if(v.length<2){$("#preds").classList.remove("on");predData=[];return;}predictDeb(v);});
+$("#q").addEventListener("keydown",e=>{const box=$("#preds");
+  if(e.key==="Escape"){box.classList.remove("on");return;}
+  if(!box.classList.contains("on"))return;
+  const rows=[...box.querySelectorAll(".pred[data-i]:not(.hiddenrow)")]; if(!rows.length)return;
+  let pos=rows.findIndex(r=>r.classList.contains("kbd"));
+  if(e.key==="ArrowDown"){e.preventDefault();pos=Math.min(pos+1,rows.length-1);}
+  else if(e.key==="ArrowUp"){e.preventDefault();pos=Math.max(pos-1,0);}
+  else if(e.key==="Enter"){e.preventDefault();const r=pos>=0?rows[pos]:rows[0];if(r)choose(+r.dataset.i);return;}
+  else return;
+  rows.forEach((r,i)=>r.classList.toggle("kbd",i===pos));
+  if(rows[pos])rows[pos].scrollIntoView({block:"nearest"});});
+document.addEventListener("click",e=>{if(!e.target.closest(".searchwrap"))$("#preds").classList.remove("on");});
+$("#findShops").onclick=findShops;
+$("#zip").addEventListener("keydown",e=>{if(e.key==="Enter")findShops();});
+$("#vq").addEventListener("input",e=>{VQ=e.target.value;updateVids();});
+if(LOC){$("#country").value=LOC.country||"us";setLocStatus(`✓ Saved area: ${esc(LOC.label)} (${(LOC.shops||[]).length} shops).`);}
+renderChips();renderLvlBar();renderTutorials();loadRecs();
+renderVidBars();updateVids();renderResources();
+if(IS_FILE)$("#placeholder").insertAdjacentHTML("beforeend",
+  `<br><span style="font-size:11.5px">Heads-up: opened straight from disk, the MangaDex catalog &amp; detailed volume lists are blocked by MangaDex itself — search still works via MyAnimeList. Host the file (even a free GitHub Pages / Neocities page works) for the full experience.</span>`);
+</script>
+</body>
+</html>
