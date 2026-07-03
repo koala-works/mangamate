@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MangaMate — Find manga, ratings & where to read/watch</title>
+<title>MochiManga — Find manga, ratings & where to read/watch</title>
 <style>
   [data-theme="light"]{
     --bg:#fff7fb;--card:#ffffff;--card2:#fdeef4;--line:#f3d4e1;--ink:#2b2530;--muted:#8f8290;
@@ -22,7 +22,8 @@
   .wrap{max-width:920px;margin:0 auto;padding:20px 16px 70px}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:12px}
-  .logo{width:44px;height:44px;border-radius:13px;background:var(--grad);display:grid;place-items:center;font-size:23px;color:#fff;box-shadow:var(--shadow)}
+  .logo{width:44px;height:44px;border-radius:13px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow)}
+  .logo svg{width:34px;height:34px;display:block}
   .brand h1{font-size:21px;margin:0}.brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
   .tabs{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:13px;border:1px solid var(--line)}
   .tab{border:0;background:transparent;color:var(--muted);padding:9px 15px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
@@ -182,8 +183,8 @@
 <body data-theme="light">
 <div class="wrap">
   <header>
-    <div class="brand"><div class="logo">✦</div>
-      <div><h1>MangaMate</h1><p>Find manga · ratings · where to read &amp; watch</p></div></div>
+    <div class="brand"><div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Dango logo"><line x1="16" y1="90" x2="84" y2="10" stroke="#8a684e" stroke-width="7.5" stroke-linecap="round"/><line x1="16" y1="90" x2="84" y2="10" stroke="#d8a678" stroke-width="4.2" stroke-linecap="round"/><circle cx="67" cy="33" r="20" fill="#f0b3bf" stroke="#8a684e" stroke-width="2.6"/><circle cx="65.5" cy="31.5" r="16.5" fill="#f8cdd6"/><ellipse cx="60" cy="26" rx="5" ry="2.8" fill="#fff" transform="rotate(-38 60 26)"/><circle cx="50" cy="50" r="20" fill="#f2e0cf" stroke="#8a684e" stroke-width="2.6"/><circle cx="48.5" cy="48.5" r="16.5" fill="#fdf3ea"/><ellipse cx="43" cy="43" rx="5" ry="2.8" fill="#fff" transform="rotate(-38 43 43)"/><circle cx="34" cy="66" r="20" fill="#b6cf85" stroke="#8a684e" stroke-width="2.6"/><circle cx="32.5" cy="64.5" r="16.5" fill="#cfe3a3"/><ellipse cx="27" cy="59" rx="5" ry="2.8" fill="#fff" transform="rotate(-38 27 59)"/></svg></div>
+      <div><h1>MochiManga</h1><p>Find manga · ratings · where to read &amp; watch</p></div></div>
     <div class="tabs">
       <button class="tab active" data-tab="find">🔍 Find Manga</button>
       <button class="tab" data-tab="learn">🎨 Learn to Draw</button>
@@ -228,7 +229,7 @@
 
     <div class="lead">
       <h3>▶️ Video tutorials</h3>
-      <p>A hand-picked library of beginner-friendly manga &amp; anime drawing videos — search it, filter it, and press play. You can also type <b>any character you want to draw</b> (like “Nezuko” or “Luffy”) and MangaMate will line up YouTube tutorials for them.</p>
+      <p>A hand-picked library of beginner-friendly manga &amp; anime drawing videos — search it, filter it, and press play. You can also type <b>any character you want to draw</b> (like “Nezuko” or “Luffy”) and MochiManga will line up YouTube tutorials for them.</p>
       <div class="searchbar vsearch"><span class="ico">🔎</span>
         <input id="vq" type="text" placeholder="Search a skill or any character… (try “Nezuko”)" autocomplete="off">
         <a id="ytall" class="go ytall" href="https://www.youtube.com/results?search_query=how+to+draw+anime+for+beginners" target="_blank" rel="noopener">Search all of YouTube ↗</a>
@@ -252,7 +253,7 @@
       <div class="secwrap" id="resSec" style="padding:14px 0 0"></div>
     </div>
 
-    <div class="foot">MangaMate · manga data from MangaDex + MyAnimeList + AniList (auto-fallback) &amp; OpenStreetMap · videos play via YouTube.<br>Open this file in a real browser (or host it) — chat/file preview panes block internet access.</div>
+    <div class="foot">MochiManga · manga data from MangaDex + MyAnimeList + AniList (auto-fallback) &amp; OpenStreetMap · videos play via YouTube.<br>Open this file in a real browser (or host it) — chat/file preview panes block internet access.</div>
   </section>
 </div>
 
@@ -270,6 +271,17 @@ const $=s=>document.querySelector(s);
 const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
 const enc=encodeURIComponent;
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* favicon: reuse the header dango SVG as the browser-tab icon */
+try{
+  const logoSvg=document.querySelector(".logo svg");
+  if(logoSvg){
+    const l=document.createElement("link");
+    l.rel="icon";l.type="image/svg+xml";
+    l.href="data:image/svg+xml;utf8,"+encodeURIComponent(logoSvg.outerHTML);
+    document.head.appendChild(l);
+  }
+}catch(e){}
 
 /* theme */
 function setTheme(t){document.body.setAttribute("data-theme",t);$("#themebtn").textContent=t==="light"?"🌙 Dark":"☀️ Light";try{localStorage.setItem("mm_theme",t);}catch(e){}}
